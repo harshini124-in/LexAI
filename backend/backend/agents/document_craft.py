@@ -142,8 +142,8 @@ class DocumentCraftAgent:
     def __init__(self, config: Settings, rag_service: Optional[RAGService] = None) -> None:
         self.llm = ChatOpenAI(
             model=config.DOCUMENT_CRAFT_MODEL,
-            base_url=config.NVIDIA_BASE_URL,
-            api_key=config.NVIDIA_API_KEY,
+            base_url=config.GROQ_BASE_URL,
+            api_key=config.GROQ_API_KEY,
             temperature=0.3,
             max_tokens=4096,
         )

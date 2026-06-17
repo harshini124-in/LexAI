@@ -100,7 +100,7 @@ async def lifespan(app: FastAPI):
         threshold=settings.EXPLOITABILITY_THRESHOLD,
     )
     logger.info(
-        "Agents ready: DocumentCraft=%s, LoopholeHound=%s",
+        "Agents ready (Groq): DocumentCraft=%s, LoopholeHound=%s",
         settings.DOCUMENT_CRAFT_MODEL,
         settings.LOOPHOLE_HOUND_MODEL,
     )

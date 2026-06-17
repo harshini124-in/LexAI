@@ -139,9 +139,9 @@ class LoopholeHoundAgent:
     def __init__(self, config: Settings, rag_service: Optional[RAGService] = None) -> None:
         self.llm = ChatOpenAI(
             model=config.LOOPHOLE_HOUND_MODEL,
-            base_url=config.NVIDIA_BASE_URL,
-            api_key=config.NVIDIA_API_KEY,
-            temperature=0.7,  # Higher temp for creative attack thinking
+            base_url=config.GROQ_BASE_URL,
+            api_key=config.GROQ_API_KEY,
+            temperature=0.7,
             max_tokens=4096,
         )
         self.rag = rag_service

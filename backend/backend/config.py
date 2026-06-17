@@ -38,15 +38,15 @@ class Settings(BaseSettings):
 
     # ── Model constants (not loaded from env) ─────────────────────────────
 
-    # DocumentCraft – expert legal drafter (DeepSeek V4 Pro)
-    DOCUMENT_CRAFT_MODEL: str = "deepseek-ai/deepseek-v4-pro"
-    # LoopholeHound – adversarial analyst (DeepSeek Flash for speed + less rate limiting)
-    LOOPHOLE_HOUND_MODEL: str = "deepseek-ai/deepseek-v4-flash"
-    # Fast utility model (DeepSeek V4 Flash)
-    FAST_MODEL: str = "deepseek-ai/deepseek-v4-flash"
+    # DocumentCraft – expert legal drafter (Groq: Llama 3.3 70B)
+    DOCUMENT_CRAFT_MODEL: str = "llama-3.3-70b-versatile"
+    # LoopholeHound – adversarial analyst (Groq: Llama 3.3 70B)
+    LOOPHOLE_HOUND_MODEL: str = "llama-3.3-70b-versatile"
+    # Fast utility model (Groq: Llama 3.1 8B Instant)
+    FAST_MODEL: str = "llama-3.1-8b-instant"
 
     # ── Endpoint base URLs ────────────────────────────────────────────────
-    NVIDIA_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
+    NVIDIA_BASE_URL: str = "https://integrate.api.nvidia.com/v1"  # kept for reference
     GROQ_BASE_URL: str = "https://api.groq.com/openai/v1"
 
     # ── Adversarial loop defaults ─────────────────────────────────────────
