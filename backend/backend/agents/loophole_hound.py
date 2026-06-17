@@ -12,7 +12,7 @@ import logging
 from typing import Optional
 
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import SystemMessage, HumanMessage
 
 from backend.config import Settings
 from backend.models.schemas import (
@@ -165,17 +165,17 @@ class LoopholeHoundAgent:
                     + "\n\n".join(patterns)
                 )
 
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", ATTACK_SYSTEM_PROMPT),
-            ("human", "DOCUMENT TO ATTACK:\n\n{document}"),
-        ])
+        # Build messages directly — avoids LangChain misinterpreting
+        # JSON curly braces in the system prompt as template variables
+        system_content = ATTACK_SYSTEM_PROMPT.replace(
+            "{exploitation_context}", exploitation_context
+        )
+        messages = [
+            SystemMessage(content=system_content),
+            HumanMessage(content=f"DOCUMENT TO ATTACK:\n\n{document_text[:12000]}"),
+        ]
 
-        chain = prompt | self.llm
-        response = await chain.ainvoke({
-            "exploitation_context": exploitation_context,
-            "document": document_text[:12000],  # stay within context limits
-        })
-
+        response = await self.llm.ainvoke(messages)
         return self._parse_attack_response(response.content)
 
     def _parse_attack_response(self, raw: str) -> LoopholeReport:

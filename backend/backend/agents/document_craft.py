@@ -11,7 +11,7 @@ import logging
 from typing import Optional
 
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import SystemMessage, HumanMessage
 
 from backend.config import Settings
 from backend.models.schemas import (
@@ -157,16 +157,11 @@ class DocumentCraftAgent:
         Returns a structured dict with clause breakdown, strengths,
         concerns, and quality score.
         """
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", ANALYSIS_SYSTEM_PROMPT),
-            ("human", "Document to analyse:\n\n{document}\n\nAdditional context: {context}"),
-        ])
-
-        chain = prompt | self.llm
-        response = await chain.ainvoke({
-            "document": document_text[:12000],  # stay within token limits
-            "context": context or "None provided",
-        })
+        messages = [
+            SystemMessage(content=ANALYSIS_SYSTEM_PROMPT),
+            HumanMessage(content=f"Document to analyse:\n\n{document_text[:12000]}\n\nAdditional context: {context or 'None provided'}"),
+        ]
+        response = await self.llm.ainvoke(messages)
 
         # Parse JSON response
         try:
@@ -207,29 +202,21 @@ class DocumentCraftAgent:
         if not rag_context:
             rag_context = "(No templates found – draft from your expert knowledge.)"
 
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", GENERATION_SYSTEM_PROMPT),
-            ("human", (
-                "Document Type: {doc_type}\n"
-                "Description: {description}\n"
-                "Party A: {party_a}\n"
-                "Party B: {party_b}\n"
-                "Location/Jurisdiction: {location}\n"
-                "Additional Clauses Requested: {additional_clauses}\n\n"
-                "Draft the complete document now."
-            )),
-        ])
-
-        chain = prompt | self.llm
-        response = await chain.ainvoke({
-            "rag_context": rag_context,
-            "doc_type": request.document_type.value,
-            "description": request.description,
-            "party_a": request.party_a or "{PARTY_A_NAME}",
-            "party_b": request.party_b or "{PARTY_B_NAME}",
-            "location": request.location,
-            "additional_clauses": ", ".join(request.additional_clauses) if request.additional_clauses else "None",
-        })
+        system_content = GENERATION_SYSTEM_PROMPT.replace("{rag_context}", rag_context)
+        human_content = (
+            f"Document Type: {request.document_type.value}\n"
+            f"Description: {request.description}\n"
+            f"Party A: {request.party_a or '{PARTY_A_NAME}'}\n"
+            f"Party B: {request.party_b or '{PARTY_B_NAME}'}\n"
+            f"Location/Jurisdiction: {request.location}\n"
+            f"Additional Clauses Requested: {', '.join(request.additional_clauses) if request.additional_clauses else 'None'}\n\n"
+            "Draft the complete document now."
+        )
+        messages = [
+            SystemMessage(content=system_content),
+            HumanMessage(content=human_content),
+        ]
+        response = await self.llm.ainvoke(messages)
 
         return response.content
 
@@ -253,15 +240,11 @@ class DocumentCraftAgent:
                 f"- Suggested Fix: {vuln.suggested_fix}\n\n"
             )
 
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", PATCH_SYSTEM_PROMPT),
-            ("human", "{document}"),
-        ])
-
-        chain = prompt | self.llm
-        response = await chain.ainvoke({
-            "attack_report": report_text,
-            "document": document[:12000],
-        })
+        system_content = PATCH_SYSTEM_PROMPT.replace("{attack_report}", report_text)
+        messages = [
+            SystemMessage(content=system_content),
+            HumanMessage(content=document[:12000]),
+        ]
+        response = await self.llm.ainvoke(messages)
 
         return response.content
